@@ -75,7 +75,7 @@ extern const uint32_t pcm_wavetable_len;
 #elif defined __EMSCRIPTEN__
 #define AMY_SAMPLE_RATE 48000
 #else
-#define AMY_SAMPLE_RATE 44100 
+#define AMY_SAMPLE_RATE 22050
 #endif
 
 #define PCM_AMY_SAMPLE_RATE 22050
@@ -106,7 +106,7 @@ extern const uint32_t pcm_wavetable_len;
 #define AMY_MAX_CHANNELS 2
 
 // Always use 2 channels. Clients that want mono can deinterleave
-#define AMY_NCHANS 2
+#define AMY_NCHANS 1
 
 
 // Use dual cores on supported platforms

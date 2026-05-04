@@ -79,7 +79,7 @@ amy_err_t esp32_setup_i2s(void) {
 #ifdef I2S_32BIT
     i2s_std_config_t std_cfg = {
         .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(AMY_SAMPLE_RATE),
-        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_STEREO),
+        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_32BIT, I2S_SLOT_MODE_MONO),
         .gpio_cfg = {
             .mclk = (amy_global.config.i2s_mclk == -1)? I2S_GPIO_UNUSED : amy_global.config.i2s_mclk,
             .bclk = amy_global.config.i2s_bclk,
@@ -96,7 +96,7 @@ amy_err_t esp32_setup_i2s(void) {
 #else // 16 bit I2S
     i2s_std_config_t std_cfg = {
         .clk_cfg = I2S_STD_CLK_DEFAULT_CONFIG(AMY_SAMPLE_RATE),
-        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_STEREO),
+        .slot_cfg = I2S_STD_MSB_SLOT_DEFAULT_CONFIG(I2S_DATA_BIT_WIDTH_16BIT, I2S_SLOT_MODE_MONO),
         .gpio_cfg = {
             .mclk = (amy_global.config.i2s_mclk == -1)? I2S_GPIO_UNUSED : amy_global.config.i2s_mclk,
             .bclk = amy_global.config.i2s_bclk,
@@ -138,7 +138,7 @@ amy_err_t esp32_setup_i2s(void) {
         .slot_cfg = {
             .data_bit_width = I2S_DATA_BIT_WIDTH_32BIT,
             .slot_bit_width = I2S_SLOT_BIT_WIDTH_32BIT,
-            .slot_mode = I2S_SLOT_MODE_STEREO,
+            .slot_mode = I2S_SLOT_MODE_MONO,
             .slot_mask = I2S_STD_SLOT_BOTH,
             .ws_width = 32,
             .ws_pol = false, // false in STD_PHILIPS macro
@@ -298,25 +298,25 @@ void esp_read_i2s_input() {
     }
 }
 
-// Make AMY's FABT run forever , as a FreeRTOS task 
+// Make AMY's FABT run forever , as a FreeRTOS task
 void esp_fill_audio_buffer_task() {
     while(1) {
         AMY_PROFILE_START(AMY_ESP_FILL_BUFFER)
         if(AMY_HAS_I2S && AMY_HAS_AUDIO_IN) {
             esp_read_i2s_input();
-	}
+        }
         // Get ready to render
         amy_execute_deltas();
 
         // Render on whichever cores we have available.
         esp_render_on_cores();
-        
+
         // Write to i2s
         output_sample_type *block = amy_fill_buffer();
 	AMY_PROFILE_STOP(AMY_ESP_FILL_BUFFER)
 
         last_audio_buffer = block;
-        
+
         // Notify amy_update() that a block is ready (so it can return from amy_render_audio).
         if (amy_update_handle)
             xTaskNotifyGive(amy_update_handle);  // to amy_render_audio
